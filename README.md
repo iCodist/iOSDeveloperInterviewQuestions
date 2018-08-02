@@ -183,7 +183,110 @@
   * atomic 修饰的对象会保证 setter 和 getter 的完整性，任何线程对其访问都可以得到一个完整的初始化后的对象。因为要保证操作完成，所以速度慢。它比 nonatomic 安全，但也并不是绝对的线程安全，例如多个线程同时调用 set 和 get 就会导致获得的对象值不一样。绝对的线程安全就要用关键词 synchronized 。
   * nonatomic 修饰的对象不保证 setter 和 getter 的完整性，所以多个线程对它进行访问，它可能会返回未初始化的对象。正因为如此，它比 atomic 快，但也是线程不安全的。
 
+---
 
+* 请说明并比较以下关键词：```__weak```，```__block```
+
+  ```__weak``` 与 ```weak``` 基本相同。前者用于修饰变量（variable），后者用于修饰属性（property）。```__weak``` 主要用于防止 block 中的循环引用。
+  ```__block``` 也用于修饰变量。它是引用修饰，所以其修饰的值是动态变化的，即可以被重新赋值的。```__block``` 用于修饰某些 block 内部将要修改的外部变量。
+  ```__weak``` 和 ```__block``` 的使用场景几乎与 block 息息相关。而所谓 block，就是Objective-C 对于闭包的实现。闭包就是没有名字的函数，或者理解为指向函数的指针。
+
+---
+
+* 请说明并比较以下关键词：strong, weak, assign, copy
+  * strong 表示指向并拥有该对象。其修饰的对象引用计数会增加1。该对象只要引用计数不为 0 则不会被销毁。当然强行将其设为 nil 可以销毁它。
+  * weak 表示指向但不拥有该对象。其修饰的对象引用计数不会增加。无需手动设置，该对象会自行在内存中销毁。
+  * assign 主要用于修饰基本数据类型，如 NSInteger 和 CGFloat，这些数值主要存在于栈上。
+  * weak 一般用来修饰对象，assign 一般用来修饰基本数据类型。原因是assign 修饰的对象被释放后，指针的地址依然存在，造成野指针，在堆上容易造成崩溃。而栈上的内存系统会自动处理，不会造成野指针。
+  * copy 与 strong 类似。不同之处是 strong 的复制是多个指针指向同一个地址，而 copy 的复制每次会在内存中拷贝一份对象，指针指向不同地址。copy 一般用在修饰有可变对应类型的不可变对象上，如 NSString , NSArray , NSDictionary 。
+  * Objective-C 中，基本数据类型的默认关键字是 atomic , readwrite , assign ；普通属性的默认关键字是 atomic , readwrite , strong 。
+
+---
+
+* 什么是 **ARC** ?
+
+  ARC 全称是 Automatic Reference Counting，是 Objective-C 的内存管理机制。简单地来说，就是代码中自动加入了 retain/release ，原先需要手动添加的用来处理内存管理的引用计数的代码可以自动地由编译器完成了。
+
+  ARC的使用是为了解决对象 retain 和 release 匹配的问题。以前手动管理造成内存泄漏或者重复释放的问题将不复存在。
+
+  以前需要手动的通过 retain 去为对象获取内存，并用 release 释放内存。所以以前的操作称为 MRC (Manual Reference Counting) 。
+
+---
+
+* **dispatch_barrier_async** 的作用是什么？
+
+  在并行队列中，为了保持某些任务的顺序，需要等待一些任务完成后才能继续进行，使用 barrier 来等待之前任务完成，避免数据竞争等问题。
+
+  dispatch_barrier_async 函数会等待追加到 Concurrent Dispatch Queue 并行队列中的操作全部执行完之后，然后再执行 dispatch_barrier_async 函数追加的处理，等 dispatch_barrier_async 追加的处理执行结束之后，Concurrent Dispatch Queue才恢复之前的动作继续执行。
+
+  打个比方：比如你们公司周末跟团旅游，高速休息站上，司机说：大家都去上厕所，速战速决，上完厕所就上高速。超大的公共厕所，大家同时去，程序猿很快就结束了，但程序媛就可能会慢一些，即使你第一个回来，司机也不会出发，司机要等待所有人都回来后，才能出发。 dispatch_barrier_async 函数追加的内容就如同 “上完厕所就上高速”这个动作。
+
+  （注意：使用 dispatch_barrier_async ，该函数只能搭配自定义并行队列 dispatch_queue_t 使用。不能使用： dispatch_get_global_queue ，否则 dispatch_barrier_async 的作用会和 dispatch_async 的作用一模一样。 ）
+
+---
+
+* 内存泄漏和野指针的区别？
+
+---
+
+* block用什么修饰？
+
+---
+
+* NSString 和 NSArray 用 strong 修饰会有什么问题？
+
+---
+
+* iOS的内存管理机制
+
+---
+
+* 什么时候会出现循环引用，```__weak```、```__strong```、```__block``` 分别是什么作用?
+
+---
+
+* 说一下 autoreleasepool ?
+
+---
+
+* autoreleasepool 怎么做到释放对象的?
+
+---
+
+* nil Nil null NSNull 的区别?
+
+---
+
+* OC 中调用 nil 的方法会返回 nil 或 0，但有些时候有特殊情况，不是真正意义上的空/0，举例?
+
+---
+
+* 返回 struct 的方法并没有走send message，走的什么?
+
+---
+
+* 列举修饰符中，内存管理相关关键字及其作用?
+
+Category中使用@property方式添加的属性，实质是什么？支持KVO吗？
+isa指针是什么
+meta-class是什么
+NSDictionary的实现
+OC调用C++ 的方式有哪些
+runloop的理解，几种模式优先级排序
+runloop是怎么实现的
+iOS中有哪些方法创建线程
+gcd once怎么保证once
+GCD串行/并行队列以及sync/async的问题
+比较一下线程操作的gcd和nsoperation
+OC中提供哪些可扩展的方式
+动态库和静态库的区别有哪些
+displaylink和timer的区别
+如何自己实现timer
+不用runtime中的exchange，还有什么方法能达到hook的效果
+用runtime交换方法，有些情况下，可能会出问题，怎么解决的
+iOS的响应链（详细过程），可以用什么方法影响到响应链
+iOS的锁有哪些？介绍一下自旋锁
+描述一下OC的编译过程
 
 ## iOS实战题
 
